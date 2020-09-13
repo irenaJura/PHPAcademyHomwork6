@@ -1,55 +1,54 @@
 <?php
 
-// class for reference
-class Qux
+class AssocArr
 {
-    public function __call($name, $arguments)
-    {
-        $args = implode(', ', $arguments);
-        echo static::class . '::' . __FUNCTION__ . "(name: {$name}, arguments: [{$args}])" . '<br>';
+    private $arr = [];
+    // check if key starts with get/set/has/uns
+    // https://stackoverflow.com/questions/2790899/how-to-check-if-a-string-starts-with-a-specified-string/20419264
+    public function __call($key, $values)
+    {   $startsWith = substr($key, 0, 3);
+        $key = substr($key, 3);
+        $values = implode(',', $values);
+
+        if ($startsWith == "set") {
+            $this->arr[$key] = $values;
+        }
+        elseif ($startsWith == "get") {
+            return $this->arr[$key];
+        }
+        // https://www.php.net/manual/en/function.array-key-exists.php
+        elseif ($startsWith == "has") {
+            return array_key_exists($key, $this->arr) ? 'true' : 'false';
+        }
+        // https://www.php.net/manual/en/function.unset.php
+        elseif ($startsWith == "uns") {
+            unset( $this->arr[$key]);
+        } else {
+            throw new Exception('Ooops please try again');
+        }
+
     }
 }
 
-$qux = new Qux();
-$qux->setName('Pero', 'Perić', 'Deric'); // calls __call()
+$a = new AssocArr();
 
-class DataObject
+try {
+    $a->setName('name', 'Irena');
+    // var_dump($a);
+    echo $a->getName();
+    echo '<br/>';
+    echo $a->hasName();
+    echo '<br/>';
+    echo $a->unsName();
+    //  $a->test();
+} catch ( Exception $e )
 {
-    private $data = [];
-
-    private function setData($key, $value)
-    {
-        $this->data[$key] = $value;
-    }
-
-    public function getData($key)
-    {
-        return $this->data[$key] ?? null; // ?? => null coalescing operator
-    }
-
-    public function __call($name, $arguments)
-    {
-        if (method_exists($this, $name)) {
-            $this->$name(...$arguments); // ... => splat operator
-        }
-    }
-
-    private static function printArguments(...$arguments)
-    {
-        echo implode(', ', $arguments) . '<br>';
-    }
-
-    public static function __callStatic($name, $arguments)
-    {
-        if (method_exists(static::class, $name)) {
-            static::$name(...$arguments); // ... => splat operator
-        }
-    }
+    echo 'Caught exception: ',  $e->getMessage(), "\n";
 }
 
-$dataObject = new DataObject();
 
-$dataObject->setData('name', 'Pero'); // calls __call()
-echo $dataObject->getData('name'); // calls getData()
 
-DataObject::printArguments(1, 2, 3, 4, 5); // calls __callStatic()
+
+
+
+
